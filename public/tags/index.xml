@@ -1,77 +1,77 @@
 <rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
     <channel>
         <title>Tags - Tag - Reverse Engineering Attempts</title>
-        <link>http://localhost:1313/tags/</link>
+        <link>http://localhost:1313/mal_blog/tags/</link>
         <description>Tags - Tag - Reverse Engineering Attempts</description>
-        <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Thu, 15 May 2025 20:00:00 &#43;0800</lastBuildDate><atom:link href="http://localhost:1313/tags/" rel="self" type="application/rss+xml" /><item>
+        <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Thu, 15 May 2025 20:00:00 &#43;0800</lastBuildDate><atom:link href="http://localhost:1313/mal_blog/tags/" rel="self" type="application/rss+xml" /><item>
     <title>Boot Sequence</title>
-    <link>http://localhost:1313/tags/boot-sequence/</link>
+    <link>http://localhost:1313/mal_blog/tags/boot-sequence/</link>
     <pubDate>Thu, 15 May 2025 20:00:00 &#43;0800</pubDate><author>
         <name>Author</name>
-    </author><guid>http://localhost:1313/tags/boot-sequence/</guid>
+    </author><guid>http://localhost:1313/mal_blog/tags/boot-sequence/</guid>
     <description><![CDATA[]]></description>
 </item><item>
     <title>Coreboot</title>
-    <link>http://localhost:1313/tags/coreboot/</link>
+    <link>http://localhost:1313/mal_blog/tags/coreboot/</link>
     <pubDate>Thu, 15 May 2025 20:00:00 &#43;0800</pubDate><author>
         <name>Author</name>
-    </author><guid>http://localhost:1313/tags/coreboot/</guid>
+    </author><guid>http://localhost:1313/mal_blog/tags/coreboot/</guid>
     <description><![CDATA[]]></description>
 </item><item>
     <title>CVE-2025-0282</title>
-    <link>http://localhost:1313/tags/cve-2025-0282/</link>
+    <link>http://localhost:1313/mal_blog/tags/cve-2025-0282/</link>
     <pubDate>Thu, 15 May 2025 20:00:00 &#43;0800</pubDate><author>
         <name>Author</name>
-    </author><guid>http://localhost:1313/tags/cve-2025-0282/</guid>
+    </author><guid>http://localhost:1313/mal_blog/tags/cve-2025-0282/</guid>
     <description><![CDATA[]]></description>
 </item><item>
     <title>Dspkginstall</title>
-    <link>http://localhost:1313/tags/dspkginstall/</link>
+    <link>http://localhost:1313/mal_blog/tags/dspkginstall/</link>
     <pubDate>Thu, 15 May 2025 20:00:00 &#43;0800</pubDate><author>
         <name>Author</name>
-    </author><guid>http://localhost:1313/tags/dspkginstall/</guid>
+    </author><guid>http://localhost:1313/mal_blog/tags/dspkginstall/</guid>
     <description><![CDATA[]]></description>
 </item><item>
     <title>Firmware Security</title>
-    <link>http://localhost:1313/tags/firmware-security/</link>
+    <link>http://localhost:1313/mal_blog/tags/firmware-security/</link>
     <pubDate>Thu, 15 May 2025 20:00:00 &#43;0800</pubDate><author>
         <name>Author</name>
-    </author><guid>http://localhost:1313/tags/firmware-security/</guid>
+    </author><guid>http://localhost:1313/mal_blog/tags/firmware-security/</guid>
     <description><![CDATA[]]></description>
 </item><item>
     <title>ICS</title>
-    <link>http://localhost:1313/tags/ics/</link>
+    <link>http://localhost:1313/mal_blog/tags/ics/</link>
     <pubDate>Thu, 15 May 2025 20:00:00 &#43;0800</pubDate><author>
         <name>Author</name>
-    </author><guid>http://localhost:1313/tags/ics/</guid>
+    </author><guid>http://localhost:1313/mal_blog/tags/ics/</guid>
     <description><![CDATA[]]></description>
 </item><item>
     <title>Integrity Check Evasion</title>
-    <link>http://localhost:1313/tags/integrity-check-evasion/</link>
+    <link>http://localhost:1313/mal_blog/tags/integrity-check-evasion/</link>
     <pubDate>Thu, 15 May 2025 20:00:00 &#43;0800</pubDate><author>
         <name>Author</name>
-    </author><guid>http://localhost:1313/tags/integrity-check-evasion/</guid>
+    </author><guid>http://localhost:1313/mal_blog/tags/integrity-check-evasion/</guid>
     <description><![CDATA[]]></description>
 </item><item>
     <title>Ivanti</title>
-    <link>http://localhost:1313/tags/ivanti/</link>
+    <link>http://localhost:1313/mal_blog/tags/ivanti/</link>
     <pubDate>Thu, 15 May 2025 20:00:00 &#43;0800</pubDate><author>
         <name>Author</name>
-    </author><guid>http://localhost:1313/tags/ivanti/</guid>
+    </author><guid>http://localhost:1313/mal_blog/tags/ivanti/</guid>
     <description><![CDATA[]]></description>
 </item><item>
     <title>Ivanti Connect Secure</title>
-    <link>http://localhost:1313/tags/ivanti-connect-secure/</link>
+    <link>http://localhost:1313/mal_blog/tags/ivanti-connect-secure/</link>
     <pubDate>Thu, 15 May 2025 20:00:00 &#43;0800</pubDate><author>
         <name>Author</name>
-    </author><guid>http://localhost:1313/tags/ivanti-connect-secure/</guid>
+    </author><guid>http://localhost:1313/mal_blog/tags/ivanti-connect-secure/</guid>
     <description><![CDATA[]]></description>
 </item><item>
     <title>LD_PRELOAD</title>
-    <link>http://localhost:1313/tags/ld_preload/</link>
+    <link>http://localhost:1313/mal_blog/tags/ld_preload/</link>
     <pubDate>Thu, 15 May 2025 20:00:00 &#43;0800</pubDate><author>
         <name>Author</name>
-    </author><guid>http://localhost:1313/tags/ld_preload/</guid>
+    </author><guid>http://localhost:1313/mal_blog/tags/ld_preload/</guid>
     <description><![CDATA[]]></description>
 </item></channel>
 </rss>
