@@ -4,11 +4,13 @@
         <link>http://localhost:1313/post/</link>
         <description>Posts -  - Reverse Engineering Attempts</description>
         <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Thu, 15 May 2025 14:00:00 &#43;0800</lastBuildDate><atom:link href="http://localhost:1313/post/" rel="self" type="application/rss+xml" /><item>
-    <title>Deconstructing RESURGE: A Deep Dive into Ivanti Malware Persistence Through Boot Sequence Manipulation</title>
-    <link>http://localhost:1313/post/first_post/</link>
-    <pubDate>Thu, 15 May 2025 14:30:00 &#43;0800</pubDate><author>
+    <title>Malware in VPN Appliance?!</title>
+    <link>http://localhost:1313/post/ivanti_connect_secure_malware/</link>
+    <pubDate>Thu, 15 May 2025 20:00:00 &#43;0800</pubDate><author>
         <name>Author</name>
-    </author><guid>http://localhost:1313/post/first_post/</guid>
-    <description><![CDATA[A deep dive into the RESURGE malware&rsquo;s persistence mechanisms targeting Ivanti Connect Secure (ICS) appliances. This article details how RESURGE hijacks the firmware upgrade process, using SED scripts to modify critical components like /etc/ld.so.preload, CGI backdoors, integrity scanners, and even the coreboot.img for extreme persistence.]]></description>
+    </author><guid>http://localhost:1313/post/ivanti_connect_secure_malware/</guid>
+    <description><![CDATA[<div class="featured-image">
+                <img src="images/1_ivanti_malware_cover.png" referrerpolicy="no-referrer">
+            </div>A deep dive into the RESURGE malware&rsquo;s persistence mechanisms targeting Ivanti Connect Secure (ICS) appliances. This article details how RESURGE hijacks the firmware upgrade process, using SED scripts to modify critical components like /etc/ld.so.preload, CGI backdoors, integrity scanners, and even the coreboot.img for extreme persistence.]]></description>
 </item></channel>
 </rss>
