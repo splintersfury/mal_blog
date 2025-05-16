@@ -1,9 +1,11 @@
-baseURL = "http://example.org/"
+baseURL = "https://splintersfury.github.io/mal_blog/"
 # [en, zh-cn, fr, ...] determines default content language
 defaultContentLanguage = "en"
 # language code
 languageCode = "en"
 title = "Reverse Engineering Attempts"
+relativeURLs = true
+canonifyURLs = true
 
 # Change the default theme to be use when building the site with Hugo
 theme = "DoIt"
