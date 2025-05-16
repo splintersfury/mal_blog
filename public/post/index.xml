@@ -1,15 +1,14 @@
 <rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
     <channel>
-        <title>Posts -  - My New Hugo Site</title>
+        <title>Posts -  - Reverse Engineering Attempts</title>
         <link>http://localhost:1313/post/</link>
-        <description>Posts -  - My New Hugo Site</description>
-        <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Thu, 15 May 2025 10:41:26 &#43;0800</lastBuildDate><atom:link href="http://localhost:1313/post/" rel="self" type="application/rss+xml" /><item>
-    <title>First_post</title>
+        <description>Posts -  - Reverse Engineering Attempts</description>
+        <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Thu, 15 May 2025 14:00:00 &#43;0800</lastBuildDate><atom:link href="http://localhost:1313/post/" rel="self" type="application/rss+xml" /><item>
+    <title>Deconstructing RESURGE: A Deep Dive into Ivanti Malware Persistence Through Boot Sequence Manipulation</title>
     <link>http://localhost:1313/post/first_post/</link>
-    <pubDate>Thu, 15 May 2025 10:41:26 &#43;0800</pubDate><author>
+    <pubDate>Thu, 15 May 2025 14:30:00 &#43;0800</pubDate><author>
         <name>Author</name>
     </author><guid>http://localhost:1313/post/first_post/</guid>
-    <description><![CDATA[<p>First Post
-Amazing isnt it</p>]]></description>
+    <description><![CDATA[A deep dive into the RESURGE malware&rsquo;s persistence mechanisms targeting Ivanti Connect Secure (ICS) appliances. This article details how RESURGE hijacks the firmware upgrade process, using SED scripts to modify critical components like /etc/ld.so.preload, CGI backdoors, integrity scanners, and even the coreboot.img for extreme persistence.]]></description>
 </item></channel>
 </rss>

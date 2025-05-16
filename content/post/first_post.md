@@ -1,7 +1,186 @@
-+++
-date = '2025-05-15T10:41:26+08:00'
-draft = false
-title = 'First_post'
-+++
-First Post
-Amazing isnt it
+---
+title: "Deconstructing RESURGE: A Deep Dive into Ivanti Malware Persistence Through Boot Sequence Manipulation"
+date: 2025-05-15T14:30:00+08:00 # Or your preferred publication date/time
+draft: false # Set to true if you're still working on it
+# author: "Your Name/Alias" # Uncomment and fill in your author name
+
+categories:
+  - "Malware Analysis"
+  - "Reverse Engineering"
+  - "Cybersecurity"
+  - "Threat Intelligence"
+
+tags:
+  - "RESURGE"
+  - "Ivanti"
+  - "Ivanti Connect Secure"
+  - "ICS"
+  - "Persistence"
+  - "Boot Sequence"
+  - "Firmware Security"
+  - "coreboot"
+  - "LD_PRELOAD"
+  - "CVE-2025-0282" # As mentioned in your TLDR
+  - "UNC5221"
+  - "Linux Security"
+  - "dspkginstall"
+  - "Web Shell"
+  - "Integrity Check Evasion"
+
+# keywords: # Optional: For SEO, if your theme uses them distinctly from tags
+#  - "Ivanti Malware Persistence"
+#  - "RESURGE Malware Analysis"
+#  - "ICS Boot Sequence Exploit"
+#  - "Firmware Tampering"
+
+summary: "A deep dive into the RESURGE malware's persistence mechanisms targeting Ivanti Connect Secure (ICS) appliances. This article details how RESURGE hijacks the firmware upgrade process, using SED scripts to modify critical components like /etc/ld.so.preload, CGI backdoors, integrity scanners, and even the coreboot.img for extreme persistence." # Adapted from your TLDR
+
+image: "/images/resurge-ivanti-deep-dive.jpg" # Suggestion: Path to a relevant cover image for your post
+
+toc: true # Highly recommended for this detailed technical article
+comment: true # Assuming you want comments enabled
+# math: false # Set to true if you use LaTeX for mathematical formulas
+mermaid: true # Set to true if you plan to use Mermaid for diagrams (e.g., for the boot sequence)
+---
+
+I've been closely following the extensive exploitation of Ivanti Connect Secure (ICS) appliances, detailed in reports such as the 4-part series by Google Cloud Threat Intelligence:
+
+* [Suspected APT Targets Ivanti Zero-Day](https://cloud.google.com/blog/topics/threat-intelligence/suspected-apt-targets-ivanti-zero-day)
+* [Investigating Ivanti Zero-Day Exploitation](https://cloud.google.com/blog/topics/threat-intelligence/investigating-ivanti-zero-day-exploitation)
+* [Investigating Ivanti Exploitation & Persistence](https://cloud.google.com/blog/topics/threat-intelligence/investigating-ivanti-exploitation-persistence)
+* [Ivanti Post-Exploitation Lateral Movement](https://cloud.google.com/blog/topics/threat-intelligence/ivanti-post-exploitation-lateral-movement)
+
+These, along with insightful analyses from CISA ([MAR-25993211.r1.v1.CLEAR\_.pdf](https://www.cisa.gov/sites/default/files/2025-03/MAR-25993211.r1.v1.CLEAR_.pdf)) and JPCERT/CC ([SpawnChimera Analysis](https://blogs.jpcert.or.jp/en/2025/02/spawnchimera.html)), paint a picture of sustained campaigns by threat actors (like UNC5221, a suspected China-nexus group, as noted by Google/Mandiant). What particularly captured my attention amidst this landscape was the methodology of persistence employed by the RESURGE malware. This prompted a deep reverse engineering effort on my part, revealing that a thorough understanding of the Ivanti Connect Secure boot sequence is paramount to truly comprehending how RESURGE’s scripts and function hooks achieve such resilient entrenchment.
+
+## TLDR: RESURGE's Deep Persistence Tactics
+
+This article details the persistence mechanisms of the RESURGE malware targeting Ivanti Connect Secure (ICS) appliances. RESURGE, often linked to the exploitation of vulnerabilities like CVE-2025-0282, achieves deep system persistence by hijacking the firmware upgrade process (`dspkginstall`). Using meticulously crafted SED scripts, it modifies critical system components. Key techniques include:
+
+* **Root Filesystem Patching:** Prepending its malicious shared object (`libdsupgrade.so`) to `/etc/ld.so.preload` (a technique also seen with other Ivanti malware like ZIPLINE), injecting a CGI backdoor into `compcheckresult.cgi` (web shells are a common theme in these attacks), and neutralizing integrity scanners (`scanner.py`, `check_integrity.sh`) by altering their scripts and re-signing the system manifest to evade the Ivanti Integrity Checker Tool (ICT) – a target for evasion by multiple actors.
+* **`coreboot.img` Modification:** For `coreboot` upgrades, RESURGE decrypts `coreboot.img`, injects its components (including `libdsupgrade.so`), modifies the `init` script within `coreboot.img` to also preload the malicious library, and re-encrypts the image. This ensures extreme persistence.
+
+The outcome is an appliance where the implant loads broadly, a C2 channel is established, and a CGI backdoor allows remote command execution, aligning with the broader goals of espionage-motivated threat actors targeting edge infrastructure. My reverse engineering of RESURGE focused on its unique persistence methods within the context of the Ivanti appliance's architecture.
+
+## Ivanti Connect Secure: Boot & Upgrade Context
+
+To understand RESURGE's persistence, we first need a basic understanding of a typical Linux-based appliance boot process and how Ivanti handles upgrades.
+
+A typical Linux boot process involves several stages:
+
+1.  **Power-On & Firmware (BIOS/UEFI):** Initializes hardware.
+2.  **Bootloader (e.g., GRUB):** Loaded by the firmware. Its job is to load the operating system kernel and an initial RAM disk (like `initramfs` or, in Ivanti's case, components related to `coreboot.img`).
+3.  **Kernel & Initial RAM Disk (`coreboot.img` contextually for Ivanti):** The kernel starts and uses the initial RAM disk to load necessary drivers and prepare the environment. `coreboot.img` can be thought of as providing an early filesystem and often runs a lightweight `init` process.
+4.  **Main `init` Process:** The kernel mounts the main root filesystem and executes the main `init` program (e.g., `/sbin/init`, often managed by `/etc/inittab` or systemd). This process is responsible for starting system daemons and services.
+5.  **Services Online:** Critical services, including the Ivanti Connect Secure application suite, web server, and SSH, are launched.
+
+RESURGE cleverly exploits the **firmware upgrade process**, specifically the `dspkginstall` utility, as its primary infection and persistence vector. When an administrator applies a firmware package, RESURGE's already-implanted code (or code run as part of the exploit chain) intercepts and modifies this update process.
+
+## RESURGE's Firmware Infection Mechanism
+
+RESURGE inspects the type of upgrade package being installed to deploy specific logic branches for its modifications. It heavily relies on the **SED (Stream EDitor)** utility to perform in-place modifications to scripts and configuration files during the upgrade. This tactic of tampering with files during the update process has been noted by Mandiant/Google, where tools like THINSPOOL were observed re-adding web shells after system updates.
+
+RESURGE employs two primary scripts for its modifications:
+
+### Branch 1: Root Filesystem Compromise (Script #1)
+
+This script is applied to most upgrade packages (excluding `coreboot`-specific ones initially, though `coreboot` upgrades will also include these actions later). It targets the `./do-install` script within the upgrade package.
+
+Key actions performed by SED commands injected by RESURGE:
+
+1.  **Implant Staging (Lines 0-2 of RESURGE's script):**
+    * Before a legitimate status message (e.g., `echo_console "Saving package"`), RESURGE inserts commands using SED's `i\` (insert before) functionality.
+    * `cp /lib/libdsupgrade.so /tmp/data/root/lib/libdsupgrade.so`: The primary malicious shared object (`libdsupgrade.so`) is copied into the staging area of the new root filesystem.
+    * `cp /home/venv3/.../scanner-0.1-py3.6.egg ...`: A helper Python egg (likely for manipulating Python-based tools) is also staged.
+
+2.  **`LD_PRELOAD` Persistence (Lines 3-7):**
+    * **Line 4:** `sed -i '1i/lib/libdsupgrade.so' /tmp/data/root/etc/ld.so.preload`
+        * This command prepends the path `/lib/libdsupgrade.so` to the `/etc/ld.so.preload` file within the staged root filesystem. This ensures the malicious library is loaded before any other library for most dynamically linked executables. This technique is a well-known method for achieving broad user-space hooking and was also observed in other Ivanti-targeting malware like ZIPLINE, which utilized it when `dspkginstall` was the executing process name.
+
+    * **Lines 6-7:** The Perl module `/tmp/data/root/home/perl/DSUpgrade.pm` is modified using SED.
+        * It sets the environment variable `$ENV{"LD_PRELOAD"} = "libdsupgrade.so";` specifically during the upgrade process (likely when `popen` is used within `DSUpgrade.pm`).
+        * The variable is then cleared post-`popen` call for evasion, making the `LD_PRELOAD` trickery during the upgrade itself less obvious if `DSUpgrade.pm` were inspected live.
+
+3.  **CGI Backdoor Injection (Lines 9-10):**
+    * **Line 9:** An 8-line Perl snippet is injected via SED into `/usr/local/ive/ responsabile/compcheckresult.cgi` (targeting `tmp/data/root/usr/local/ive/ responsabile/compcheckresult.cgi` during the upgrade). This snippet creates a web shell, allowing remote command execution via a GET request parameter named `vXm8DtMJG`. Web shells are a common payload in Ivanti exploitations, as seen with LIGHTWIRE (delivered via THINSPOOL) and various Perl-based shells detailed by JPCERT.
+        ```perl
+        # Example structure of the injected Perl code (conceptual)
+        # if ($ENV{'QUERY_STRING'} =~ /vXm8DtMJG=([^&]+)/) {
+        #     my $cmd = $1;
+        #     # Decode/Sanitize $cmd (or not, if poorly written)
+        #     my $output = `$cmd`;
+        #     print "Content-type: text/plain\n\n";
+        #     print $output;
+        #     exit 0;
+        # }
+        ```
+
+    * **Line 10:** The manifest hash for the now-modified `compcheckresult.cgi` file is updated within the system manifest file. This is an attempt to make the modification appear legitimate to basic integrity checks that rely on this manifest.
+
+4.  **Integrity Check Evasion (Lines 8, 11-17):**
+    * **Line 11:** `sed -i 's/exit 1/exit 0/g' /tmp/data/root/home/bin/check_integrity.sh`
+        * The system's integrity checking script, `check_integrity.sh`, is modified to always `exit 0` (success), regardless of whether it finds discrepancies. Evading Ivanti's Integrity Checker Tool (ICT) is a crucial objective for attackers. Malware like ZIPLINE attempted this by trying to add its components to an exclusion list for the ICT.
+    * **Lines 13-17:** RESURGE takes further steps to defeat the ICT:
+        * A new RSA key pair is generated.
+        * The system manifest (which now includes the hash of the backdoored CGI and potentially other RESURGE files) is re-signed using the newly generated private key.
+        * The new public key and the new signature are then used to replace Ivanti's original public key and signature files. This effectively makes the tampered system state appear valid to the ICT, as it would be verifying against attacker-controlled keys.
+
+### Branch 2: `coreboot.img` Tampering for Deeper Persistence (Script #2)
+
+This script is specifically for `coreboot` package upgrades. It includes all the actions from Script #1 (ensuring the root filesystem is also compromised) and adds direct manipulation of the `coreboot.img` itself. This image is critical as it's involved in the early stages of the boot process.
+
+The modifications are applied to the `/tmp/installer/do-install-coreboot` script:
+
+1.  **`coreboot.img` Decryption (Lines 18-25 of RESURGE's script):**
+    * **Line 18:** SED is used to hook the routine where `coreboot.img` is copied, allowing RESURGE to operate on it.
+    * **Lines 19-24:** A series of commands are orchestrated to extract the AES encryption key for `coreboot.img`:
+        * `dsmain -g` is used (potentially to enable gzip/gunzip functionality within `dsmain` or related tools).
+        * `extract_vmlinux.sh` (a standard Ivanti script) is called to extract the `vmlinux` (kernel image) from the `coreboot` package.
+        * `strings` and `xxd` are used on the extracted `vmlinux` to search for and dump a 16-byte AES-CTR key. This implies the key is stored, perhaps obfuscated, within the kernel image itself.
+
+    * **Line 25:** `dsmain -d coreboot.img /tmp/new_img/coreboot.img.1.gz $key`
+        * The `dsmain` utility (an Ivanti binary) is used with the `-d` (decrypt) option, the extracted `$key`, and the input `coreboot.img` to produce a decrypted (and gzipped) version at `/tmp/new_img/coreboot.img.1.gz`.
+
+2.  **Injecting into `coreboot.img` Filesystem (Lines 26-33):**
+    * **Lines 26-27:** The decrypted image is uncompressed (`gunzip`) and its contents (a CPIO archive) are extracted into a temporary filesystem directory, `/tmp/coreboot_fs`.
+        ```bash
+        gunzip /tmp/new_img/coreboot.img.1.gz
+        cd /tmp/coreboot_fs
+        cpio -idvm < /tmp/new_img/coreboot.img.1
+        ```
+    * **Lines 28-30:** RESURGE's components are copied into this extracted filesystem:
+        * The `dsmain` binary itself.
+        * The malicious shared object `libdsupgrade.so`.
+        * The helper Python egg.
+        These are typically placed into locations like `/bin/` and `/lib/` within `/tmp/coreboot_fs`.
+    * **Lines 31-33:** `dsmain sed -i '1i/lib/libdsupgrade.so' /home/root/etc/ld.so.preload` (Note: path inside `coreboot.img`'s filesystem might be different, e.g., `/etc/ld.so.preload` or a path relative to the `coreboot_fs` root like `./etc/ld.so.preload`).
+        * Crucially, RESURGE modifies the `ld.so.preload` file *within* the `coreboot.img` filesystem. This ensures that `libdsupgrade.so` is preloaded very early in the boot process when `coreboot.img` is active, providing an extremely deep and resilient form of persistence.
+
+    3.  **Repackaging and Re-encryption (Lines 34-37):**
+    * The modified `/tmp/coreboot_fs` directory is then:
+        * Repacked into a CPIO archive.
+        * Compressed using gzip.
+        * Re-encrypted using `dsmain -e` with the previously extracted AES key.
+    * This newly created, malicious `coreboot.img` then replaces the legitimate one in the upgrade package, ensuring it gets installed.
+
+## Additional Modifications by RESURGE
+
+RESURGE includes a few other subtle modifications:
+
+* **Wrapper Package Path Correction:** A SED one-liner adjusts paths, likely to ensure correct `LD_PRELOAD` inheritance or script execution context when updates are applied via "wrapper" packages (packages that bundle other packages).
+* **Scanner Bypass (Preemptive):** If `bom_files` (Bill of Materials files, often used for integrity checking or file listing) exist, RESURGE uses SED commands to neutralize Python-based scanners. This likely involves modifying scanner scripts to ignore RESURGE's files or always return success, similar to the `check_integrity.sh` bypass.
+
+## Impact of Compromise
+
+Once RESURGE has successfully manipulated the upgrade process, the Ivanti Connect Secure appliance is deeply compromised:
+
+* The primary implant, `/lib/libdsupgrade.so`, is loaded broadly across the system via the tampered `/etc/ld.so.preload` in the main filesystem.
+* If `coreboot.img` was also targeted, `libdsupgrade.so` is also loaded from within the `coreboot.img` environment during early boot stages, providing an additional layer of persistence that is very difficult to remove without a full, trusted re-imaging.
+* Command and Control (C2) is established. My reverse engineering identified an RC4-encrypted C2 channel initiated through constructor hooks in `libdsupgrade.so`. CISA also notes that RESURGE can establish SSH tunnels for C2.
+* The injected Perl snippet in `compcheckresult.cgi` provides a persistent web shell accessible via the `vXm8DtMJG` parameter, allowing unauthenticated remote command execution.
+* System integrity checking tools are neutered, allowing the malware to operate undetected by standard checks.
+
+The modification of `coreboot.img`, as highlighted by CISA, offers significant persistence. This technique is designed to survive typical remediation efforts like factory resets (if the reset doesn't re-flash `coreboot` from a trusted source) and standard upgrade procedures (which RESURGE will simply re-infect).
+
+This deep entrenchment underscores the sophistication of the threat actors targeting edge infrastructure devices and the critical need for robust firmware and software supply chain security, as well as advanced detection and response capabilities.
+
+---

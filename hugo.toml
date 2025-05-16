@@ -3,7 +3,7 @@ baseURL = "http://example.org/"
 defaultContentLanguage = "en"
 # language code
 languageCode = "en"
-title = "My New Hugo Site"
+title = "Reverse Engineering Attempts"
 
 # Change the default theme to be use when building the site with Hugo
 theme = "DoIt"
@@ -14,32 +14,31 @@ theme = "DoIt"
 
 [menu]
   [[menu.main]]
-    identifier = "posts"
-    # you can add extra information before the name (HTML format is supported), such as icons
-    pre = ""
-    # you can add extra information after the name (HTML format is supported), such as icons
-    post = ""
-    name = "Posts"
-    url = "/posts/"
-    # title will be shown when you hover on this menu link
-    title = ""
+    identifier = "post"
+    # ... (your existing posts entry)
+    name = "Post"
+    url = "/post/"
     weight = 1
   [[menu.main]]
     identifier = "tags"
-    pre = ""
-    post = ""
+    # ... (your existing tags entry)
     name = "Tags"
     url = "/tags/"
-    title = ""
     weight = 2
   [[menu.main]]
     identifier = "categories"
-    pre = ""
-    post = ""
+    # ... (your existing categories entry)
     name = "Categories"
     url = "/categories/"
-    title = ""
     weight = 3
+  [[menu.main]] # New entry for About page
+    identifier = "about"
+    pre = ""
+    post = ""
+    name = "About Me"
+    url = "/about/" # This should match the filename (e.g., content/about.md)
+    title = "Learn more about me"
+    weight = 4    # Adjust weight to control order
 
 # Markup related configuration in Hugo
 [markup]
@@ -47,3 +46,7 @@ theme = "DoIt"
   [markup.highlight]
     # false is a necessary configuration (https://github.com/dillonzq/LoveIt/issues/158)
     noClasses = false
+
+[caches]
+  [caches.images]
+    dir = ":cacheDir/images"
