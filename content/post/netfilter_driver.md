@@ -152,7 +152,7 @@ The Windows Filtering Platform (WFP) is a powerful set of APIs and system servic
     
     WFP is important because it offers a documented, supported, and relatively stable way for kernel-mode components to interact with the network stack without resorting to unsupported techniques like direct NDIS hooking, which can lead to system instability.
     
-    *(For a deeper dive into WFP architecture and development, check out this article by* https://zeronetworks.com/blog/wtf-is-going-on-with-wfp*)*
+    *(For a deeper dive into WFP architecture and development, check out this article by zeronetworks* https://zeronetworks.com/blog/wtf-is-going-on-with-wfp)
     
     Now, let's see how Netfilter.sys leverages this legitimate platform:
     
