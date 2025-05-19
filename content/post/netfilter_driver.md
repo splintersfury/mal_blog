@@ -3,7 +3,7 @@ title: "Reversing a Microsoft-Signed Rootkit: The Netfilter Driver"
 date: 2025-05-19T10:00:00+08:00
 draft: false
 author: "MA"
-featuredImage: "images/2_netfilter_coverpage.png"
+featuredImage: "post/images/2_netfilter_coverpage.png"
 categories:
   - "Malware Analysis"
   - "Reverse Engineering"
