@@ -67,8 +67,6 @@ SHA-256: `115034373fc0ec8f75fb075b7a7011b603259ecc0aca271445e559b5404a1406`
 
 Type: `Driver64`
 
-Below is the technical walk‑through. Screenshot markers show good spots for IDA Pro images.
-
 ### **3.1 DriverEntry: Standard Setup with a Twist**
 
 **(This part is largely benign in appearance, typical of many WFP drivers.)**
